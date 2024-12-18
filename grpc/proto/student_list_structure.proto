@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option go_package = "./proto";
+
+package proto;
+
+import "proto/student_structure.proto";
+
+message StudentList{
+    repeated Student Student = 1;
+}

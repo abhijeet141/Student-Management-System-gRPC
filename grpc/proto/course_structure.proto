@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+option go_package = "./proto";
+
+package proto;
+
+message Course{
+    uint64 Id = 1;           // @gotags: orm:"pk;column(id);auto"           json:"id"
+    string Title = 2;        // @gotags: orm:"column(title)"                json:"title"
+}
