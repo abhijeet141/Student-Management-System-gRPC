@@ -22,11 +22,11 @@ const (
 
 type Student struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            uint64                 `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`        // @gotags: orm:"pk;column(id);auto"           json:"id"
-	Name          string                 `protobuf:"bytes,2,opt,name=Name,proto3" json:"Name,omitempty"`     // @gotags: orm:"column(name)"                 json:"name"
-	Age           uint64                 `protobuf:"varint,3,opt,name=Age,proto3" json:"Age,omitempty"`      // @gotags: orm:"column(age)"                  json:"age"
-	User          *User                  `protobuf:"bytes,4,opt,name=User,proto3" json:"User,omitempty"`     // @gotags: orm:"rel(fk);column(user)"         json:"user"
-	Course        *Course                `protobuf:"bytes,5,opt,name=Course,proto3" json:"Course,omitempty"` // @gotags: orm:"rel(fk);column(course)"       json:"course"
+	Id            uint64                 `protobuf:"varint,1,opt,name=Id,proto3" json:"id" orm:"pk;column(id);auto"`         
+	Name          string                 `protobuf:"bytes,2,opt,name=Name,proto3" json:"name" orm:"column(name)"`      
+	Age           uint64                 `protobuf:"varint,3,opt,name=Age,proto3" json:"age" orm:"column(age)"`       
+	User          *User                  `protobuf:"bytes,4,opt,name=User,proto3" json:"user" orm:"rel(fk);column(user)"`      
+	Course        *Course                `protobuf:"bytes,5,opt,name=Course,proto3" json:"course" orm:"rel(fk);column(course)"`  
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

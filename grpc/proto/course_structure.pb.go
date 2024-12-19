@@ -22,8 +22,8 @@ const (
 
 type Course struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            uint64                 `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`      // @gotags: orm:"pk;column(id);auto"           json:"id"
-	Title         string                 `protobuf:"bytes,2,opt,name=Title,proto3" json:"Title,omitempty"` // @gotags: orm:"column(title)"                json:"title"
+	Id            uint64                 `protobuf:"varint,1,opt,name=Id,proto3" json:"id" orm:"pk;column(id);auto"`       
+	Title         string                 `protobuf:"bytes,2,opt,name=Title,proto3" json:"title" orm:"column(title)"`  
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

@@ -5,8 +5,8 @@ option go_package = "./proto";
 package proto;
 
 message User{
-    uint64 Id = 1;           // @gotags: orm:"pk;column(id);auto"           json:"id"
-    string UserName = 2;     // @gotags: orm:"column(username)"             json:"username"
-    string Password = 3;     // @gotags: orm:"column(password)"             json:"password"
-    string Role = 4;         // @gotags: orm:"column(role)"                 json:"role"
+    uint64 Id = 1;           // @gotags: orm:"pk;column(id);auto"                  json:"id"
+    string UserName = 2;     // @gotags: orm:"column(username);unique"             json:"username"
+    string Password = 3;     // @gotags: orm:"column(password)"                    json:"password"
+    string Role = 4;         // @gotags: orm:"column(role)"                        json:"role"
 }

@@ -22,10 +22,10 @@ const (
 
 type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            uint64                 `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`            // @gotags: orm:"pk;column(id);auto"           json:"id"
-	UserName      string                 `protobuf:"bytes,2,opt,name=UserName,proto3" json:"UserName,omitempty"` // @gotags: orm:"column(username)"             json:"username"
-	Password      string                 `protobuf:"bytes,3,opt,name=Password,proto3" json:"Password,omitempty"` // @gotags: orm:"column(password)"             json:"password"
-	Role          string                 `protobuf:"bytes,4,opt,name=Role,proto3" json:"Role,omitempty"`         // @gotags: orm:"column(role)"                 json:"role"
+	Id            uint64                 `protobuf:"varint,1,opt,name=Id,proto3" json:"id" orm:"pk;column(id);auto"`             
+	UserName      string                 `protobuf:"bytes,2,opt,name=UserName,proto3" json:"username" orm:"column(username);unique"`  
+	Password      string                 `protobuf:"bytes,3,opt,name=Password,proto3" json:"password" orm:"column(password)"`  
+	Role          string                 `protobuf:"bytes,4,opt,name=Role,proto3" json:"role" orm:"column(role)"`          
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

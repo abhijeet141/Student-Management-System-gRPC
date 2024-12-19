@@ -4,21 +4,21 @@ option go_package = "./proto";
 
 package proto;
 
-import "proto/course_structure.proto";
 import "proto/user_structure.proto";
 import "proto/message_structure.proto";
 import "proto/no_param_structure.proto";
 import "proto/token_Id_structure.proto";
-import "proto/student_list_structure.proto";
 import "proto/student_structure.proto";
 import "proto/student_Id_structure.proto";
+import "proto/course_structure.proto";
+
 
 service StudentManagementService{
     rpc Register (User) returns (Message);
     rpc Login (User) returns (TokenId);
     rpc GetStudentById (StudentId) returns (Student);
-    rpc CreateCourse (Course) returns (Message);
-    rpc GetAllStudents (NoParam) returns (stream StudentList);
+    rpc CreateCourse (stream Course) returns (Message);
+    rpc GetAllStudents (NoParam) returns (stream Student);
     rpc CreateStudent (Student) returns (Message);
     rpc UpdateStudent (Student) returns (Student);
     rpc DeleteStudent (StudentId) returns (Message);

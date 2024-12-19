@@ -36,8 +36,8 @@ type StudentManagementServiceClient interface {
 	Register(ctx context.Context, in *User, opts ...grpc.CallOption) (*Message, error)
 	Login(ctx context.Context, in *User, opts ...grpc.CallOption) (*TokenId, error)
 	GetStudentById(ctx context.Context, in *StudentId, opts ...grpc.CallOption) (*Student, error)
-	CreateCourse(ctx context.Context, in *Course, opts ...grpc.CallOption) (*Message, error)
-	GetAllStudents(ctx context.Context, in *NoParam, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StudentList], error)
+	CreateCourse(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Course, Message], error)
+	GetAllStudents(ctx context.Context, in *NoParam, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Student], error)
 	CreateStudent(ctx context.Context, in *Student, opts ...grpc.CallOption) (*Message, error)
 	UpdateStudent(ctx context.Context, in *Student, opts ...grpc.CallOption) (*Student, error)
 	DeleteStudent(ctx context.Context, in *StudentId, opts ...grpc.CallOption) (*Message, error)
@@ -81,23 +81,26 @@ func (c *studentManagementServiceClient) GetStudentById(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *studentManagementServiceClient) CreateCourse(ctx context.Context, in *Course, opts ...grpc.CallOption) (*Message, error) {
+func (c *studentManagementServiceClient) CreateCourse(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Course, Message], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Message)
-	err := c.cc.Invoke(ctx, StudentManagementService_CreateCourse_FullMethodName, in, out, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &StudentManagementService_ServiceDesc.Streams[0], StudentManagementService_CreateCourse_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &grpc.GenericClientStream[Course, Message]{ClientStream: stream}
+	return x, nil
 }
 
-func (c *studentManagementServiceClient) GetAllStudents(ctx context.Context, in *NoParam, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StudentList], error) {
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type StudentManagementService_CreateCourseClient = grpc.ClientStreamingClient[Course, Message]
+
+func (c *studentManagementServiceClient) GetAllStudents(ctx context.Context, in *NoParam, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Student], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &StudentManagementService_ServiceDesc.Streams[0], StudentManagementService_GetAllStudents_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &StudentManagementService_ServiceDesc.Streams[1], StudentManagementService_GetAllStudents_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[NoParam, StudentList]{ClientStream: stream}
+	x := &grpc.GenericClientStream[NoParam, Student]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -108,7 +111,7 @@ func (c *studentManagementServiceClient) GetAllStudents(ctx context.Context, in 
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type StudentManagementService_GetAllStudentsClient = grpc.ServerStreamingClient[StudentList]
+type StudentManagementService_GetAllStudentsClient = grpc.ServerStreamingClient[Student]
 
 func (c *studentManagementServiceClient) CreateStudent(ctx context.Context, in *Student, opts ...grpc.CallOption) (*Message, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -147,8 +150,8 @@ type StudentManagementServiceServer interface {
 	Register(context.Context, *User) (*Message, error)
 	Login(context.Context, *User) (*TokenId, error)
 	GetStudentById(context.Context, *StudentId) (*Student, error)
-	CreateCourse(context.Context, *Course) (*Message, error)
-	GetAllStudents(*NoParam, grpc.ServerStreamingServer[StudentList]) error
+	CreateCourse(grpc.ClientStreamingServer[Course, Message]) error
+	GetAllStudents(*NoParam, grpc.ServerStreamingServer[Student]) error
 	CreateStudent(context.Context, *Student) (*Message, error)
 	UpdateStudent(context.Context, *Student) (*Student, error)
 	DeleteStudent(context.Context, *StudentId) (*Message, error)
@@ -171,10 +174,10 @@ func (UnimplementedStudentManagementServiceServer) Login(context.Context, *User)
 func (UnimplementedStudentManagementServiceServer) GetStudentById(context.Context, *StudentId) (*Student, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStudentById not implemented")
 }
-func (UnimplementedStudentManagementServiceServer) CreateCourse(context.Context, *Course) (*Message, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateCourse not implemented")
+func (UnimplementedStudentManagementServiceServer) CreateCourse(grpc.ClientStreamingServer[Course, Message]) error {
+	return status.Errorf(codes.Unimplemented, "method CreateCourse not implemented")
 }
-func (UnimplementedStudentManagementServiceServer) GetAllStudents(*NoParam, grpc.ServerStreamingServer[StudentList]) error {
+func (UnimplementedStudentManagementServiceServer) GetAllStudents(*NoParam, grpc.ServerStreamingServer[Student]) error {
 	return status.Errorf(codes.Unimplemented, "method GetAllStudents not implemented")
 }
 func (UnimplementedStudentManagementServiceServer) CreateStudent(context.Context, *Student) (*Message, error) {
@@ -262,34 +265,23 @@ func _StudentManagementService_GetStudentById_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _StudentManagementService_CreateCourse_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Course)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StudentManagementServiceServer).CreateCourse(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: StudentManagementService_CreateCourse_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StudentManagementServiceServer).CreateCourse(ctx, req.(*Course))
-	}
-	return interceptor(ctx, in, info, handler)
+func _StudentManagementService_CreateCourse_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(StudentManagementServiceServer).CreateCourse(&grpc.GenericServerStream[Course, Message]{ServerStream: stream})
 }
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type StudentManagementService_CreateCourseServer = grpc.ClientStreamingServer[Course, Message]
 
 func _StudentManagementService_GetAllStudents_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(NoParam)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(StudentManagementServiceServer).GetAllStudents(m, &grpc.GenericServerStream[NoParam, StudentList]{ServerStream: stream})
+	return srv.(StudentManagementServiceServer).GetAllStudents(m, &grpc.GenericServerStream[NoParam, Student]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type StudentManagementService_GetAllStudentsServer = grpc.ServerStreamingServer[StudentList]
+type StudentManagementService_GetAllStudentsServer = grpc.ServerStreamingServer[Student]
 
 func _StudentManagementService_CreateStudent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Student)
@@ -365,10 +357,6 @@ var StudentManagementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _StudentManagementService_GetStudentById_Handler,
 		},
 		{
-			MethodName: "CreateCourse",
-			Handler:    _StudentManagementService_CreateCourse_Handler,
-		},
-		{
 			MethodName: "CreateStudent",
 			Handler:    _StudentManagementService_CreateStudent_Handler,
 		},
@@ -382,6 +370,11 @@ var StudentManagementService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "CreateCourse",
+			Handler:       _StudentManagementService_CreateCourse_Handler,
+			ClientStreams: true,
+		},
 		{
 			StreamName:    "GetAllStudents",
 			Handler:       _StudentManagementService_GetAllStudents_Handler,
